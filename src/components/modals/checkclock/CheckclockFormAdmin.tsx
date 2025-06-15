@@ -35,7 +35,7 @@ interface FormData extends Omit<FormInitialData, "proof"> {
 }
 
 interface CheckclockFormProps {
-  mode: "add" | "edit";
+  mode: "add";
   initialData?: FormInitialData;
   onSubmit: (formData: FormInitialData) => Promise<void>;
 }
@@ -83,7 +83,7 @@ export default function CheckclockFormAdmin({
   );
 
   useEffect(() => {
-    setTitle(mode === "add" ? "Add Checkclock" : "Edit Checkclock");
+    setTitle("Add Checkclock");
   }, [setTitle, mode]);
 
   // Get location and address
@@ -241,44 +241,17 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     console.log("Form Payload:", formPayload);
 
-    const url =
-      mode === "edit"
-        ? `http://localhost:8000/api/checkclocks/${initialData?.id}`
-        : "http://localhost:8000/api/checkclocks";
-
-    const method = "post"; // GUNAKAN POST SELALU
-
-    // Tambahkan _method=PUT jika edit
-    if (mode === "edit") {
-      formPayload.append("_method", "PUT");
-    }
-
-    const response = await axios.post(url, formPayload, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-   if (response.status === (mode === "edit" ? 200 : 201)) {
-      router.push("/admin/checkclock");
-    } else {
-      throw new Error(
-        // response.data.message || `Failed to ${mode} attendance`
-      );
-    }
-
   } catch (error: any) {
-    const errorMessage =
-      error.response?.data?.message ||
-      error.message ||
-      "An error occurred while submitting";
-      setError(errorMessage);
+    // const errorMessage =
+    //   error.response?.data?.message ||
+    //   error.message ||
+    //   "An error occurred while submitting";
+    //   setError(errorMessage);
       // console.error("Submission error:", errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
-
 
   const fetchEmployees = async () => {
     // console.log("fetchEmployees dipanggil!");
@@ -335,7 +308,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             <FiCalendar className="mr-2 text-xl" />
             <input
               type="date"
-              value={formData.date}
+              // value={formData.date}
               onChange={e =>
                 setFormData(prev => ({ ...prev, date: e.target.value }))
               }
@@ -424,31 +397,19 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
         )}
 
-        {/* Note */}
-        <div>
-          <label className="block mb-1 font-medium">Note</label>
-          <textarea
-            value={formData.note}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, note: e.target.value }))
-            }
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
-
         {/* ========= BUTTONS ========= */}
         <div className="flex justify-end space-x-3 mt-4">
           <button
             type="button"
             onClick={() => router.push("/admin/checkclock")}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+            className="px-4 py-2 bg-[#D9D9D9] text-[#595959] rounded-md hover:bg-[#b1b1b1] disabled:opacity-50"
             disabled={isSubmitting}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+            className="px-4 py-2 bg-[#1E3A5F] text-white rounded-md hover:bg-[#222d3a] disabled:opacity-50"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Saving..." : "Save"}

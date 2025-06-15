@@ -8,14 +8,22 @@ import {
   FiDownload,
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import Pagination from "@/components/Pagination";
+import UserAttendanceDetailModal from "@/components/modals/checkclock/UserAttendanceDetailModal";
 
 interface CheckclockRecord {
   id: number;
-  date: String;
+  date: string;
   clockIn: string;
   clockOut: string;
   workHours: string;
   status: string;
+  proof_of_attendance?: string | null;
+  longitude?: string | null;
+  latitude?: string | null;
+  detail_address?: string | null;
+  location?: string | null;
+  approved?: boolean | null;
 }
 
 export default function CheckclockPage() {
@@ -36,6 +44,8 @@ export default function CheckclockPage() {
     { id: 12, date: 'March 12, 2025', clockIn: '08.00', clockOut: '16.30', workHours: '8h 30m', status: 'On Time' },
   ]);
 
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedDetail, setSelectedDetail] = useState<CheckclockRecord | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showModal, setShowModal] = useState(false);
@@ -91,88 +101,72 @@ export default function CheckclockPage() {
       {/* Table */}
       <div className="pt-6 overflow-x-auto bg-white rounded-lg shadow">
         <table className="min-w-full divide-y divide-gray-500">
-          <thead className="bg-gray-800">
+          <thead className="bg-[#1E3A5F]">
             <tr>
               <th className="px-4 py-2 text-left text-sm font-semibold text-white">Date</th>
-              <th className="px-4 py-2 text-left text-sm font-semibold text-white">Clock In</th>
-              <th className="px-4 py-2 text-left text-sm font-semibold text-white">Clock Out</th>
-              <th className="px-4 py-2 text-left text-sm font-semibold text-white">Work Hours</th>
-              <th className="px-4 py-2 text-left text-sm font-semibold text-white">Status</th>
+              <th className="px-4 py-2 text-center text-sm font-semibold text-white">Clock In</th>
+              <th className="px-4 py-2 text-center text-sm font-semibold text-white">Clock Out</th>
+              <th className="px-4 py-2 text-center text-sm font-semibold text-white">Work Hours</th>
+              <th className="px-4 py-2 text-center text-sm font-semibold text-white">Status</th>
+              <th className="px-4 py-2 text-center text-sm font-semibold text-white">Details</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {currentData.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-2">{r.date}</td>
-                <td className="px-4 py-2">{r.clockIn}</td>
-                <td className="px-4 py-2">{r.clockOut}</td>
-                <td className="px-4 py-2">{r.workHours}</td>
-                <td className="px-4 py-2">
-                  <span className="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-md text-xs">
+                <td className="px-4 py-2 text-center ">{r.clockIn}</td>
+                <td className="px-4 py-2 text-center">{r.clockOut}</td>
+                <td className="px-4 py-2 text-center">{r.workHours}</td>
+                <td className="px-4 py-2 text-center">
+                  <span className={`inline-block px-2 py-1 rounded-md text-xs items-center ${
+                    r.status === 'On Time' ? 'bg-green-100 text-green-800' :
+                    r.status === 'Late' ? 'bg-yellow-100 text-yellow-800' :
+                    r.status === 'Absent' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
                     {r.status}
                   </span>
                 </td>
+                <td className="px-4 py-2 text-center">
+                  <div className="flex justify-center gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedDetail(r);
+                        setShowDetailModal(true);
+                      }}
+                      className="px-4 py-1 bg-white text-black text-sm rounded-sm hover:bg-gray-200 border-1"
+                      title="View Details"
+                    >
+                      View
+                    </button>                  
+                  </div>
+                </td>          
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination Controls */}
-      <div className="flex items-center justify-between mt-4 text-sm">
-        {/* Left: Items per page */}
-        <div className="flex items-center gap-2">
-          <span>Show</span>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => {
-              setItemsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="border border-gray-300 rounded-md px-2 py-1"
-          >
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={30}>30</option>
-          </select>
-        </div>
+      {/* Modal Details */}
+      <UserAttendanceDetailModal 
+        showDetailModal={showDetailModal}
+        setShowDetailModal={setShowDetailModal}
+        selectedDetail={selectedDetail}
+        // getCurrentLocation={getCurrentLocation}
+      />
 
-        {/* Middle: Showing x to y of z */}
-        <div>
-          Showing {startIndex + 1} to {endIndex} of {totalItems} records
-        </div>
-
-        {/* Right: Page Navigation */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-3 py-1 rounded-md border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50"
-          >
-            ‹
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              onClick={() => handlePageChange(i + 1)}
-              className={`px-3 py-1 rounded-md border ${
-                currentPage === i + 1
-                  ? "bg-gray-300"
-                  : "bg-white hover:bg-gray-100"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 rounded-md border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50"
-          >
-            ›
-          </button>
-        </div>
-      </div>
+      <Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        totalItems={totalItems}
+        onPageChange={setCurrentPage}
+        onItemsPerPageChange={(items) => {
+          setItemsPerPage(items);
+          setCurrentPage(1); // Reset to first page when changing items per page
+        }}
+      />
     </div>
   );
 }

@@ -88,7 +88,6 @@ export default function AddCheckclock() {
               <option value="" disabled hidden>Choose Type of Attendance</option>
               <option>Clock In</option>
               <option>Clock Out</option>
-              <option>Absent</option>
               <option>Annual Leave</option>
               <option>Sick Leave</option>
             </select>
@@ -159,10 +158,10 @@ export default function AddCheckclock() {
             <button
               type="button"
               onClick={handleUpload}
-              className="mt-2 w-full py-2 bg-blue-600 text-white rounded-md disabled:opacity-50"
+              className="mt-2 w-full py-2 bg-[#1E3A5F] text-white rounded-md disabled:opacity-50"
               disabled={!proofUploaded}
             >
-              Upload Now
+                Upload Now
             </button>
           </div>
         </div>
@@ -230,13 +229,13 @@ export default function AddCheckclock() {
           <button
             type="button"
             onClick={() => router.push("/user/checkclock")}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            className="px-4 py-2 bg-[#D9D9D9] text-[#595959] rounded-md hover:bg-[#b1b1b1] disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            className="px-4 py-2 bg-[#1E3A5F] text-white rounded-md hover:bg-[#222d3a] disabled:opacity-50"
           >
             Save
           </button>
