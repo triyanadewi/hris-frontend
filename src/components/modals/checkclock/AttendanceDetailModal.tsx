@@ -5,18 +5,17 @@ import { FaUserCircle, FaEye } from "react-icons/fa";
 import { FiDownload } from "react-icons/fi";
 import dynamic from "next/dynamic";
 import { useSweetAlert } from "@/hooks/useSweetAlert";
-import leafletStyles from "@/styles/leaflet.module.css";
 
 // Import Leaflet CSS
 import "leaflet/dist/leaflet.css";
+import "@/styles/leaflet.css";
 
 // Dynamic imports
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   {
-    ssr: false,
-    loading: () => (
-      <div className={leafletStyles.mapLoading}>Loading map...</div>
+    ssr: false,    loading: () => (
+      <div className="mapLoading">Loading map...</div>
     ),
   }
 );

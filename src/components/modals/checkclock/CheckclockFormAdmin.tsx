@@ -6,6 +6,7 @@ import { FiCalendar } from "react-icons/fi";
 import { FiClock } from "react-icons/fi";
 import dynamic from "next/dynamic";
 import axios from "axios";
+import { getEmployees } from "@/lib/services/employee";
 
 interface Employee {
   id: number;
@@ -23,10 +24,10 @@ interface FormInitialData {
   note?: string;
   startDate?: string;
   endDate?: string;
-  location: string;
-  detailAddress: string;
-  latitude: number;
-  longitude: number;
+  location?: string;
+  detailAddress?: string;
+  latitude?: number;
+  longitude?: number;
   proof?: File | string | null;
 }
 
@@ -52,24 +53,13 @@ export default function CheckclockFormAdmin({
   const [error, setError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [proofUploaded, setProofUploaded] = useState(false);
-  const [fileName, setFileName] = useState("");
-  const [dragActive, setDragActive] = useState(false);
   const [formData, setFormData] = useState<FormInitialData>({
     employee: initialData?.employee || "",
     type: initialData?.type || "",
     date: initialData?.date || new Date().toISOString().split("T")[0], // tambah ini
     time: initialData?.time || new Date().toTimeString().split(" ")[0], // tambah ini
-    note: initialData?.note || "", // tambah ini
     startDate: initialData?.startDate || "",
     endDate: initialData?.endDate || "",
-    location:
-      initialData?.location ||
-      "Office",
-    detailAddress: initialData?.detailAddress || "",
-    latitude: initialData?.latitude || -7.983908,
-    longitude: initialData?.longitude || 112.621381,
-    proof: initialData?.proof || null,
   });
 
   // Dynamic Map import
@@ -90,18 +80,18 @@ export default function CheckclockFormAdmin({
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async position => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
           const address = await getAddressFromCoordinates(latitude, longitude);
 
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             latitude,
             longitude,
             detailAddress: address,
           }));
         },
-        error => {
+        (error) => {
           console.error("Error getting location:", error);
         }
       );
@@ -118,26 +108,6 @@ export default function CheckclockFormAdmin({
     } catch (error) {
       console.error("Error fetching address:", error);
       return "";
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      setFormData(prev => ({ ...prev, proof: file }));
-      setFileName(file.name);
-      setProofUploaded(true);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragActive(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      setFormData(prev => ({ ...prev, proof: file }));
-      setFileName(file.name);
-      setProofUploaded(true);
     }
   };
 
@@ -159,94 +129,93 @@ export default function CheckclockFormAdmin({
     }
     // For check-in/check-out, validate time
     if (
-        (formData.type === "check-in" || formData.type === "check-out") &&
-        !formData.time
+      (formData.type === "check-in" || formData.type === "check-out") &&
+      !formData.time
     ) {
-        alert("Please select time for check-in/check-out");
-        return false;
+      alert("Please select time for check-in/check-out");
+      return false;
     }
-    
+
     if (!formData.location || formData.location.trim() === "") {
-        setError("Location is required");
-        return false;
+      setError("Location is required");
+      return false;
     }
 
     return true;
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!validateForm()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
-  setIsSubmitting(true);
-  setError("");
+    setIsSubmitting(true);
+    setError("");
 
-  try {
-    const formPayload = new FormData();
+    try {
+      const formPayload = new FormData();
 
-    // Isi data umum
-    formPayload.append("employee_id", formData.employee);
-    formPayload.append("check_clock_type", formData.type);
+      // Isi data umum
+      formPayload.append("employee_id", formData.employee);
+      formPayload.append("check_clock_type", formData.type);
 
-    // Tanggal
-    const currentDate =
-      formData.date || new Date().toISOString().split("T")[0];
+      // Tanggal
+      const currentDate =
+        formData.date || new Date().toISOString().split("T")[0];
       formPayload.append("check_clock_date", currentDate);
 
-    // Time handling - only for check-in/check-out
-    if (formData.type === "check-in" || formData.type === "check-out") {
-      let currentTime =
-        formData.time || new Date().toTimeString().split(" ")[0];
+      // Time handling - only for check-in/check-out
+      if (formData.type === "check-in" || formData.type === "check-out") {
+        let currentTime =
+          formData.time || new Date().toTimeString().split(" ")[0];
 
-      // Tambahkan detik jika tidak ada (jika formatnya masih HH:mm)
-      if (/^\d{2}:\d{2}$/.test(currentTime)) {
-        currentTime += ":00";
+        // Tambahkan detik jika tidak ada (jika formatnya masih HH:mm)
+        if (/^\d{2}:\d{2}$/.test(currentTime)) {
+          currentTime += ":00";
+        }
+
+        formPayload.append("check_clock_time", currentTime);
       }
 
-      formPayload.append("check_clock_time", currentTime);
-    }
+      // ✅ Tambahan: Waktu default jika type = annual-leave / sick-leave
+      if (formData.type === "annual-leave" || formData.type === "sick-leave") {
+        const now = new Date();
+        const currentTime = "00:00:00"; // Format: HH:mm:ss
+        formPayload.append("check_clock_time", currentTime);
+        formPayload.append("check_out_time", currentTime);
 
-    // ✅ Tambahan: Waktu default jika type = annual-leave / sick-leave
-    if (formData.type === "annual-leave" || formData.type === "sick-leave") {
-      const now = new Date();
-      const currentTime = '00:00:00'; // Format: HH:mm:ss
-      formPayload.append("check_clock_time", currentTime);
-      formPayload.append("check_out_time", currentTime);
-
-      formPayload.append('update_type', formData.type);
-    }
-
-    formPayload.append("note", formData.note || "");
-
-    // Untuk cuti / izin
-    if (formData.type === "annual-leave" || formData.type === "sick-leave") {
-      if (!formData.startDate || !formData.endDate) {
-        throw new Error(
-          "Start and end dates are required for leave requests"
-        );
+        formPayload.append("update_type", formData.type);
       }
-      formPayload.append("start_date", formData.startDate);
-      formPayload.append("end_date", formData.endDate);
-    }
 
-    // Lokasi & bukti - dikirim sebagai string kosong jika tidak tersedia
-    formPayload.append("location", formData.location || "");
-    formPayload.append("address", formData.detailAddress || "");
-    formPayload.append("latitude", formData.latitude?.toString() || "");
-    formPayload.append("longitude", formData.longitude?.toString() || "");
+      formPayload.append("note", formData.note || "");
 
-    if (formData.proof instanceof File) {
-      formPayload.append("photo", formData.proof);
-    }
+      // Untuk cuti / izin
+      if (formData.type === "annual-leave" || formData.type === "sick-leave") {
+        if (!formData.startDate || !formData.endDate) {
+          throw new Error(
+            "Start and end dates are required for leave requests"
+          );
+        }
+        formPayload.append("start_date", formData.startDate);
+        formPayload.append("end_date", formData.endDate);
+      }
 
-    console.log("Form Payload:", formPayload);
+      // Lokasi & bukti - dikirim sebagai string kosong jika tidak tersedia
+      formPayload.append("location", formData.location || "");
+      formPayload.append("address", formData.detailAddress || "");
+      formPayload.append("latitude", formData.latitude?.toString() || "");
+      formPayload.append("longitude", formData.longitude?.toString() || "");
 
-  } catch (error: any) {
-    // const errorMessage =
-    //   error.response?.data?.message ||
-    //   error.message ||
-    //   "An error occurred while submitting";
-    //   setError(errorMessage);
+      if (formData.proof instanceof File) {
+        formPayload.append("photo", formData.proof);
+      }
+
+      console.log("Form Payload:", formPayload);
+    } catch (error: any) {
+      // const errorMessage =
+      //   error.response?.data?.message ||
+      //   error.message ||
+      //   "An error occurred while submitting";
+      //   setError(errorMessage);
       // console.error("Submission error:", errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -257,10 +226,8 @@ const handleSubmit = async (e: React.FormEvent) => {
     // console.log("fetchEmployees dipanggil!");
 
     try {
-      const response = await fetch("http://localhost:8000/api/employee");
-      const data = await response.json();
-      // console.log("Data dari API:", data);
-      setEmployees(data);
+      const employees = await getEmployees(1);
+      setEmployees(employees);
     } catch (error) {
       console.error("Gagal fetch:", error);
     }
@@ -285,15 +252,15 @@ const handleSubmit = async (e: React.FormEvent) => {
           <label className="block mb-1 font-medium">Employee</label>
           <select
             value={formData.employee}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, employee: e.target.value }))
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, employee: e.target.value }))
             }
             className="w-full border rounded px-3 py-2"
           >
             <option value="" disabled hidden>
               Choose Employee
             </option>
-            {employees.map(employee => (
+            {employees?.map((employee) => (
               <option key={employee.id} value={employee.id}>
                 {`${employee.FirstName} ${employee.LastName} - ${employee.Position}`}
               </option>
@@ -309,8 +276,8 @@ const handleSubmit = async (e: React.FormEvent) => {
             <input
               type="date"
               // value={formData.date}
-              onChange={e =>
-                setFormData(prev => ({ ...prev, date: e.target.value }))
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, date: e.target.value }))
               }
               className="w-full outline-none"
             />
@@ -322,8 +289,8 @@ const handleSubmit = async (e: React.FormEvent) => {
           <label className="block mb-1 font-medium">Type of Attendance</label>
           <select
             value={formData.type}
-            onChange={e =>
-              setFormData(prev => ({ ...prev, type: e.target.value }))
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, type: e.target.value }))
             }
             className="w-full border rounded px-3 py-2"
           >
@@ -348,8 +315,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <input
                   type="date"
                   value={formData.startDate}
-                  onChange={e =>
-                    setFormData(prev => ({
+                  onChange={(e) =>
+                    setFormData((prev) => ({
                       ...prev,
                       startDate: e.target.value,
                     }))
@@ -366,8 +333,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <input
                   type="date"
                   value={formData.endDate}
-                  onChange={e =>
-                    setFormData(prev => ({
+                  onChange={(e) =>
+                    setFormData((prev) => ({
                       ...prev,
                       endDate: e.target.value,
                     }))
@@ -381,20 +348,20 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         {/* Time : nambah ini*/}
         {(formData.type === "check-in" || formData.type === "check-out") && (
-        <div>
+          <div>
             <label className="block mb-1 font-medium">Time</label>
             <div className="flex items-center border rounded px-3 py-2">
-            <FiClock className="mr-2 text-xl" />
-            <input
+              <FiClock className="mr-2 text-xl" />
+              <input
                 type="time"
                 value={formData.time}
-                onChange={e =>
-                setFormData(prev => ({ ...prev, time: e.target.value }))
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, time: e.target.value }))
                 }
                 className="w-full outline-none"
-            />
+              />
             </div>
-        </div>
+          </div>
         )}
 
         {/* ========= BUTTONS ========= */}

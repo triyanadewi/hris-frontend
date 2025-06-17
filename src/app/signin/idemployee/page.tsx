@@ -76,7 +76,9 @@ export default function SignInWithIDEmployee() {
             {/* Password */}
             <div>
               <label className="block text-sm font-medium mb-1">Password</label>
-              <div className="relative"> {/* Tambahkan relative positioning */}
+              <div className="relative">
+                {" "}
+                {/* Tambahkan relative positioning */}
                 <input
                   type={showPassword ? "text" : "password"} // Mengubah tipe input berdasarkan state showPassword
                   placeholder="Enter your password"
@@ -87,14 +89,18 @@ export default function SignInWithIDEmployee() {
                   className="absolute right-3 top-3 text-gray-600" // Posisikan ikon
                   onClick={() => setShowPassword(!showPassword)} // Toggle state showPassword
                 >
-                  {showPassword ? <EyeOff size={25} /> : <Eye size={25} />} {/* Render ikon sesuai state */}
+                  {showPassword ? <EyeOff size={25} /> : <Eye size={25} />}{" "}
+                  {/* Render ikon sesuai state */}
                 </button>
               </div>
             </div>
 
             {/* Remember Me & Forgot Password */}
             <div className="flex justify-between items-center text-sm">
-              <label htmlFor="remember" className="flex items-center cursor-pointer">
+              <label
+                htmlFor="remember"
+                className="flex items-center cursor-pointer"
+              >
                 <input type="checkbox" id="remember" className="peer hidden" />
                 <div className="w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-all duration-200">
                   <svg
@@ -114,7 +120,10 @@ export default function SignInWithIDEmployee() {
                 <span className="ml-3 text-sm">Remember Me</span>
               </label>
 
-              <Link href="/forgotPassword" className="text-blue-600 font-medium">
+              <Link
+                href="/forgotPassword"
+                className="text-blue-600 font-medium"
+              >
                 Forgot Password?
               </Link>
             </div>
@@ -122,7 +131,7 @@ export default function SignInWithIDEmployee() {
             {/* Tombol Sign In */}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded font-semibold hover:bg-blue-700 transition"
+              className="w-full bg-gray-800 text-white py-4 rounded font-semibold hover:bg-gray-900 transition disabled:opacity-50"
             >
               SIGN IN
             </button>
