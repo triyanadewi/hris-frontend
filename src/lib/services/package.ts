@@ -81,39 +81,39 @@ export interface Company {
 
 // Package Services
 export const getAllPackages = async (): Promise<Package[]> => {
-  const response = await api.get("/packages");
+  const response = await api.get("/admin/packages");
   return response.data;
 };
 
 export const getPackages = async (): Promise<Package[]> => {
-  const response = await api.get('/packages');
+  const response = await api.get('/admin/packages');
   return response.data;
 };
 
 // Company Services
 export const getMyCompany = async (): Promise<Company> => {
-  const response = await api.get("/company/fixed");
+  const response = await api.get("/admin/company/fixed");
   return response.data;
 };
 
 export const getCompanyForCheckout = async (): Promise<Company> => {
-  const response = await api.get("/company/fixed");
+  const response = await api.get("/admin/company/fixed");
   return response.data;
 };
 
 // Order Services
 export const createOrder = async (data: CreateOrderRequest) => {
-  const response = await api.post("/packages/order", data);
+  const response = await api.post("/admin/packages/order", data);
   return response.data;
 };
 
 export const getOrderWithCompany = async (orderId: number): Promise<OrderResponse> => {
-  const response = await api.get(`/packages/order/${orderId}`);
+  const response = await api.get(`/admin/packages/order/${orderId}`);
   return response.data;
 };
 
 export const updateOrder = async (orderId: number, data: UpdateOrderRequest) => {
-  const response = await api.put(`/packages/order/${orderId}`, data);
+  const response = await api.put(`/admin/packages/order/${orderId}`, data);
   return response.data;
 };
 
@@ -122,12 +122,12 @@ export const confirmPayment = async (orderId: number, data: {
   payment_method: string;
   payment_reference?: string;
 }) => {
-  const response = await api.post(`/packages/order/${orderId}/confirm-payment`, data);
+  const response = await api.post(`/admin/packages/order/${orderId}/confirm-payment`, data);
   return response.data;
 };
 
 export const cancelOrder = async (orderId: number) => {
-  const response = await api.delete(`/packages/order/${orderId}/cancel`);
+  const response = await api.delete(`/admin/packages/order/${orderId}/cancel`);
   return response.data;
 };
 

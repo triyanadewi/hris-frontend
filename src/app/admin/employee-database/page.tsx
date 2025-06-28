@@ -32,7 +32,7 @@ type AvatarProps = {
 function EmployeeAvatar({ src, alt }: AvatarProps) {
   const [imgError, setImgError] = useState(false);
 
-  const baseUrl = "http://localhost:8000/storage/";
+  const baseUrl = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/`;
 
   const fullSrc = src?.startsWith("http") ? src : `${baseUrl}${src}`;
 
@@ -315,7 +315,7 @@ export default function EmployeeDatabasetPage() {
       return null;
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || "http://127.0.0.1:8000";
 
     const cleanPath = achievement.file_path.startsWith("/")
       ? achievement.file_path.slice(1)

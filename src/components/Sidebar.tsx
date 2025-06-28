@@ -53,14 +53,19 @@ export default function Sidebar() {
   const menuItems = isAdmin ? adminMenuItems : isUser ? userMenuItems : [];
 
   const handleLogout = async () => {
-    await fetch("http://localhost:8000/api/logout", {
-      method: "POST",
-      credentials: "include"
-    });
-    router.push("/signin");
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {}, {
+        withCredentials: true,
+      });
+      router.push("/signin");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Redirect anyway in case of error
+      router.push("/signin");
+    }
   };
   return (
-    <aside className="group/sidebar relative h-screen sticky top-0 transition-all duration-300 bg-white shadow-md hover:w-48 w-16">
+    <aside className="group/sidebar h-screen sticky top-0 transition-all duration-300 bg-white shadow-md hover:w-48 w-16">
       <div className="flex items-center gap-2 px-3 py-4 pl-5">
         <img src="/logo.png" alt="Logo" className="w-6 h-auto" />
         <span className="hidden group-hover/sidebar:inline-block text-base font-semibold">HRIS</span>

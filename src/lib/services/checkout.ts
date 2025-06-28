@@ -48,7 +48,7 @@ export const createOrder = async (orderData: CreateOrderData): Promise<OrderResp
   try {
     console.log("Creating order with:", orderData);
 
-    const response = await api.post("/packages/order", orderData);
+    const response = await api.post("/admin/packages/order", orderData);
 
     console.log("Response status:", response.status);
     console.log("Response data:", response.data);
@@ -78,7 +78,7 @@ export const createPayment = async (orderId: number, paymentData: CreatePaymentD
   try {
     console.log("Creating payment for order:", orderId, "with data:", paymentData);
     
-    const response = await api.post(`/packages/order/${orderId}/payment`, paymentData);
+    const response = await api.post(`/admin/packages/order/${orderId}/payment`, paymentData);
 
     console.log("Payment response status:", response.status);
     console.log("Payment response data:", response.data);
@@ -115,7 +115,7 @@ export const checkPaymentStatus = async (orderId: number, paymentId: string) => 
   try {
     console.log(`Checking payment status for order ${orderId}, payment ${paymentId}`);
     
-    const response = await api.get(`/packages/order/${orderId}/payment/${paymentId}/status`);
+    const response = await api.get(`/admin/packages/order/${orderId}/payment/${paymentId}/status`);
     
     console.log("Payment status response:", response.data);
     return response.data;
@@ -142,7 +142,7 @@ export const getOrderWithCompany = async (orderId: number) => {
   try {
     console.log(`Getting order details for order ${orderId}`);
     
-    const response = await api.get(`/packages/order/${orderId}`);
+    const response = await api.get(`/admin/packages/order/${orderId}`);
     
     console.log("Order details response:", response.data);
     return response.data;
@@ -169,7 +169,7 @@ export const updateOrder = async (orderId: number, updateData: any) => {
   try {
     console.log(`Updating order ${orderId} with data:`, updateData);
     
-    const response = await api.put(`/packages/order/${orderId}`, updateData);
+    const response = await api.put(`/admin/packages/order/${orderId}`, updateData);
     
     console.log("Update order response:", response.data);
     return response.data;

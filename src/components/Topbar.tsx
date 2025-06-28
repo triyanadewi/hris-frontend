@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Cookies from 'js-cookie';
+import axios from 'axios';
 
 interface UserProfile {
   first_name?: string;
@@ -26,17 +27,14 @@ export default function Topbar({ title }: { title: string }) {
         return;
       }
 
-      const res = await fetch('http://localhost:8000/api/admin/logout', {
-        method: 'POST',
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/logout`, {}, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
-      if (!res.ok) {
-        console.error('Gagal logout:', await res.json());
-      }
+      console.log('Logout successful');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -50,20 +48,14 @@ export default function Topbar({ title }: { title: string }) {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:8000/api/admin/profile", {
-        method: "GET",
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data); // asumsi respons langsung objek user
-      } else {
-        console.error("Gagal mengambil data profil:", await res.json());
-      }
+      setUser(res.data); // axios automatically parses JSON
     } catch (err) {
       console.error("Fetch error:", err);
     }
@@ -74,7 +66,7 @@ export default function Topbar({ title }: { title: string }) {
   }, []);
 
   const profileImageUrl = user.photo
-    ? `http://localhost:8000/storage/photos/${user.photo}`
+    ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/photos/${user.photo}`
     : "/default-avatar.png";
 
   return (

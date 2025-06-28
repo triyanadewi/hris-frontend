@@ -20,7 +20,7 @@ export interface CompanyData {
 
 export async function createCompany(data: CompanyFormData) {
   try {
-    const response = await api.post('/companies', data);
+    const response = await api.post('/admin/companies', data);
     return response.data;
   } catch (error: any) {
     // Kirimkan error response ke frontend untuk penanganan
@@ -33,7 +33,7 @@ export async function createCompany(data: CompanyFormData) {
 
 export async function getAuthenticatedCompany(): Promise<CompanyData> {
   try {
-    const response = await api.get('/company/me');
+    const response = await api.get('/admin/company/me');
     return response.data;
   } catch (error: any) {
     if (error.response) {

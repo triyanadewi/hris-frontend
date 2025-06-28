@@ -127,7 +127,7 @@ export default function CheckclockPage() {
     if (!selectedRecord) return;
     try {
       await axios.put(
-        `http://localhost:8000/api/checkclocks/${selectedRecord.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/checkclocks/${selectedRecord.id}`,
         {
           approved: true,
         }
@@ -144,7 +144,7 @@ export default function CheckclockPage() {
     if (!selectedRecord) return;
     try {
       await axios.put(
-        `http://localhost:8000/api/checkclocks/${selectedRecord.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/checkclocks/${selectedRecord.id}`,
         {
           approved: false,
         }
@@ -169,7 +169,7 @@ export default function CheckclockPage() {
   const handleExport = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/checkclocks/export",
+        `${process.env.NEXT_PUBLIC_API_URL}/checkclocks/export`,
         {
           responseType: "blob", // Penting agar file terunduh dengan benar
         }

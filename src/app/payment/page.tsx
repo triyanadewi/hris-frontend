@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import axios from "axios";
 
 const packagePlans = [
   { title: "Free Trial", price: 0 },
@@ -53,9 +54,9 @@ function CheckoutContent() {
     setAddonEmployees(parseInt(searchParams.get("addonEmployees") ?? "0"));
 
     // Fetch company from API
-    fetch("http://localhost:8000/api/companies")
-      .then((res) => res.json())
-      .then((data) => {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/companies`)
+      .then((response) => {
+        const data = response.data;
         if (Array.isArray(data) && data.length > 0) {
           setCompanies({
             name: data[0].name,

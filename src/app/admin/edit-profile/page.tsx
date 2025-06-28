@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function EditProfile() {
   const [form, setForm] = useState({
@@ -16,11 +17,11 @@ export default function EditProfile() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/profile", {
-      credentials: "include",
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
+      withCredentials: true,
     })
-      .then((res) => res.json())
-      .then((data) => {
+      .then((response) => {
+        const data = response.data;
         setForm({
           first_name: data.first_name || "",
           last_name: data.last_name || "",
@@ -29,6 +30,9 @@ export default function EditProfile() {
           password: "",
         });
         setProfilePhoto(data.profile_photo);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch profile:", error);
       });
   }, []);
 
@@ -52,13 +56,18 @@ export default function EditProfile() {
       formData.append("photo", photo);
     }
 
-    await fetch("http://localhost:8000/api/profile/update", {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/profile/update`, formData, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-    router.push("/admin/view-profile");
+      router.push("/admin/view-profile");
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    }
   };
 
   return (
@@ -67,7 +76,7 @@ export default function EditProfile() {
 
       {profilePhoto && (
         <img
-          src={`http://localhost:8000/storage/photos/${profilePhoto}`}
+          src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/photos/${profilePhoto}`}
           alt="Profile"
           className="w-24 h-24 rounded-full object-cover mb-4 mx-auto"
         />

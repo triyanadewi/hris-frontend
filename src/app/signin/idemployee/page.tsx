@@ -131,7 +131,7 @@ export default function SignInWithIDEmployee() {
             {/* Tombol Sign In */}
             <button
               type="submit"
-              className="w-full bg-gray-800 text-white py-4 rounded font-semibold hover:bg-gray-900 transition disabled:opacity-50"
+              className="w-full bg-blue-500 text-white py-3 rounded font-semibold hover:bg-blue-700 transition"
             >
               SIGN IN
             </button>

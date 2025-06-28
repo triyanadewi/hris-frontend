@@ -1,16 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function ViewProfile() {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/profile", {
-      credentials: "include",
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
+      withCredentials: true,
     })
-      .then((res) => res.json())
-      .then((data) => setProfile(data));
+      .then((response) => {
+        setProfile(response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch profile:", error);
+      });
   }, []);
 
   if (!profile) {
@@ -23,7 +28,7 @@ export default function ViewProfile() {
 
       {profile.profile_photo && (
         <img
-          src={`http://localhost:8000/storage/photos/${profile.profile_photo}`}
+          src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/storage/photos/${profile.profile_photo}`}
           alt="Profile"
           className="w-24 h-24 rounded-full object-cover mb-4 mx-auto"
         />

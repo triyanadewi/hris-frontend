@@ -262,10 +262,9 @@ export default function Home() {
       {/* Features / Packages Section */}
       <section id="features" className="py-24 px-4" data-aos="fade-in">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold mb-4 text-center text-gray-900">Choose the HRIS Packages right for you</h2>
+          <h2 className="text-4xl font-bold mb-4 text-center text-gray-900">HRIS Packages</h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-center mb-16">
-            Choose the package that best suits your business! This HRIS offers
-            both subscription and pay-as-you-go payment options.
+            This HRIS offers both subscription and pay-as-you-go payment options.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -350,7 +349,7 @@ export default function Home() {
                     ))}
                   </ul>
 
-                  <Button
+                  {/* <Button
                     variant={plan.popular ? "default" : "outline"}
                     onClick={() =>
                       plan.price === 0
@@ -365,7 +364,7 @@ export default function Home() {
                   >
                     {plan.price === 0 ? "Start Free Trial" : "Choose Plan"}
                     <span className="ml-2">→</span>
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             ))}
@@ -454,7 +453,7 @@ export default function Home() {
                     ))}
                   </ul>
 
-                  <Button
+                  {/* <Button
                     variant="outline"
                     onClick={() =>
                       plan.price 
@@ -465,7 +464,7 @@ export default function Home() {
                   >
                     {plan.price ? "Choose Plan" : "Contact Sales"}
                     <span className="ml-2">→</span>
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             ))}

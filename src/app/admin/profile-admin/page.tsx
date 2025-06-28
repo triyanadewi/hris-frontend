@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import axios from 'axios'
 
 type Company = {
   name: string
@@ -44,9 +45,10 @@ export default function AdminProfile() {
   ];
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/companies/1')
-      .then(res => res.json())
-      .then(data => setCompany(data))
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/companies/1`)
+      .then(response => {
+        setCompany(response.data)
+      })
       .catch(error => {
         console.error('Failed to fetch company:', error)
       })

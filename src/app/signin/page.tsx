@@ -36,8 +36,10 @@ export default function SignInPage() {
         return;
       }
 
+      // Login successful
       router.push("/admin/dashboard");
-    } catch {
+    } catch (error) {
+      console.error("Login error:", error);
       setError("Terjadi kesalahan koneksi ke server.");
     } finally {
       setLoading(false);
@@ -147,7 +149,7 @@ export default function SignInPage() {
 
             <button
               type="submit"
-              className="w-full bg-gray-800 text-white py-4 rounded font-semibold hover:bg-gray-900 transition disabled:opacity-50"
+              className="w-full bg-blue-500 text-white py-3 rounded font-semibold hover:bg-blue-700 transition"
               disabled={loading}
             >
               {loading ? "Signing in..." : "SIGN IN"}

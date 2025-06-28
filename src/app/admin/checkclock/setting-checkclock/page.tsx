@@ -104,7 +104,7 @@ export default function SettingCheckclock() {
   const fetchWorkSettings = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/work-settings"
+        `${process.env.NEXT_PUBLIC_API_URL}/work-settings`
       );
       if (response.data.status === 200 && response.data.data) {
         const setting = response.data.data;
@@ -149,7 +149,7 @@ export default function SettingCheckclock() {
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/api/checkclocks");
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/checkclocks`);
       if (response.data.status === 200) {
         setRecords(response.data.data);
       }
@@ -221,12 +221,12 @@ export default function SettingCheckclock() {
       let response;
       if (workSettings.id) {
         response = await axios.put(
-          `http://localhost:8000/api/work-settings/${workSettings.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/work-settings/${workSettings.id}`,
           dataToSend
         );
       } else {
         response = await axios.post(
-          "http://localhost:8000/api/work-settings",
+          `${process.env.NEXT_PUBLIC_API_URL}/work-settings`,
           dataToSend
         );
       }

@@ -58,7 +58,8 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = "http://localhost:8000/auth/google";
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || "http://127.0.0.1:8000";
+    window.location.href = `${baseUrl}/auth/google`;
   };
 
   return (

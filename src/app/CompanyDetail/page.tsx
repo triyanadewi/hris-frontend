@@ -1,5 +1,7 @@
 "use client";
 
+import api from '@/lib/api';
+import { useRouter } from 'next/navigation';
 import { useState } from "react";
 import {
   FaTrash,
@@ -37,6 +39,7 @@ type Branch = {
 };
 
 export default function CompanyDetailPage() {
+  const router = useRouter();
   const [branches, setBranches] = useState<Branch[]>([
     {
       name: "",
@@ -251,23 +254,82 @@ export default function CompanyDetailPage() {
     return true;
   };
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      alert("Company details saved successfully!");
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Error saving company details");
+      // Prepare data for backend
+      const companyData = {
+        branches: branches.map(branch => ({
+          name: branch.name.trim(),
+          branch_address: branch.branch_address.trim(),
+          branch_phone: branch.branch_phone.trim(),
+          branch_phone_backup: branch.branch_phone_backup?.trim() || null,
+          description: branch.description?.trim() || null,
+          divisions: branch.divisions.map(division => ({
+            name: division.name.trim(),
+            description: division.description?.trim() || null,
+            positions: division.positions.map(position => ({
+              name: position.name.trim(),
+              description: position.description?.trim() || null,
+            })),
+          })),
+        })),
+      };
+
+      console.log("Sending data to backend:", companyData);
+
+      const response = await api.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/company-details`,
+        companyData,
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        alert("Company details saved successfully!");
+        
+        // Redirect to dashboard atau halaman selanjutnya
+        router.push("/admin/dashboard");
+        return;
+      } else {
+        throw new Error("Unexpected response status");
+      }
+    } catch (error: any) {
+      console.error("Error saving company details:", error);
+      
+      let errorMessage = "Error saving company details. Please try again.";
+      
+      if (error.response) {
+        // Server responded with error status
+        const status = error.response.status;
+        const message = error.response.data?.message || error.response.data?.error;
+        
+        if (status === 422) {
+          errorMessage = message || "Validation error. Please check your input.";
+        } else if (status === 401) {
+          errorMessage = "Unauthorized. Please login again.";
+          router.push("/signin");
+          return;
+        } else if (status === 403) {
+          errorMessage = "You don't have permission to perform this action.";
+        } else if (status === 500) {
+          errorMessage = "Server error. Please try again later.";
+        } else if (message) {
+          errorMessage = message;
+        }
+      } else if (error.request) {
+        // Network error
+        errorMessage = "Network error. Please check your internet connection.";
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  
   const handleBack = () => {
     // Simulate router back
     console.log("Going back...");
