@@ -10,7 +10,7 @@ import {
   MdSettings,
 } from 'react-icons/md';
 import axios from 'axios';
-import { getCookie, deleteCookie } from 'cookies-next';
+import Cookies from 'js-cookie';
 
 type SidebarIconProps = {
   icon: ReactNode;
@@ -54,16 +54,28 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {}, {
-        withCredentials: true,
+      const token = Cookies.get('token');
+      if (!token) {
+        window.location.href = '/signin';
+        return;
+      }
+
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/logout`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
-      router.push("/signin");
+
+      console.log('Logout successful');
     } catch (error) {
-      console.error("Logout failed:", error);
-      // Redirect anyway in case of error
-      router.push("/signin");
+      console.error('Logout error:', error);
+    } finally {
+      Cookies.remove('token');
+      window.location.href = '/signin';
     }
   };
+
   return (
     <aside className="group/sidebar h-screen sticky top-0 transition-all duration-300 bg-white shadow-md hover:w-48 w-16">
       <div className="flex items-center gap-2 px-3 py-4 pl-5">
