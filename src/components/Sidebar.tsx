@@ -36,12 +36,14 @@ const adminMenuItems = [
   { icon: <MdAccessTime />, path: '/admin/checkclock', label: 'Checkclock' },
   { icon: <MdAssignment />, path: '/admin/letter-management', label: 'Letter' },
   { icon: <MdSettings />, path: '/admin/profile-admin', label: 'Profile' },
+  { icon: <MdLogout />, path: 'logout', label: 'Logout' }, // Changed path to 'logout'
 ];
 
 const userMenuItems = [
   { icon: <MdOutlineSpaceDashboard />, path: '/user/dashboard', label: 'Dashboard' },
   { icon: <MdAccessTime />, path: '/user/checkclock', label: 'Checkclock' },
   { icon: <MdAssignment />, path: '/user/letter-management', label: 'Letter' },
+  { icon: <MdLogout />, path: 'logout', label: 'Logout' }, // Changed path to 'logout'
 ];
 
 export default function Sidebar() {
@@ -60,7 +62,10 @@ export default function Sidebar() {
         return;
       }
 
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/logout`, {}, {
+      // Determine the correct logout endpoint based on user type
+      const logoutEndpoint = isAdmin ? '/admin/logout' : '/user/logout';
+      
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}${logoutEndpoint}`, {}, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -71,39 +76,48 @@ export default function Sidebar() {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Always clear token and redirect regardless of API response
       Cookies.remove('token');
       window.location.href = '/signin';
     }
   };
 
+  const handleMenuClick = (path: string) => {
+    if (path === 'logout') {
+      handleLogout();
+    } else {
+      router.push(path);
+    }
+  };
+
   return (
-    <aside className="group/sidebar h-screen sticky top-0 transition-all duration-300 bg-white shadow-md hover:w-48 w-16">
-      <div className="flex items-center gap-2 px-3 py-4 pl-5">
+    <aside className="group/sidebar min-h-screen sticky top-0 transition-all duration-300 bg-white shadow-md hover:w-48 w-16 flex flex-col">
+      {/* Header Section */}
+      <div className="flex items-center gap-2 px-3 py-4 pl-5 flex-shrink-0">
         <img src="/logo.png" alt="Logo" className="w-6 h-auto" />
         <span className="hidden group-hover/sidebar:inline-block text-base font-semibold">HRIS</span>
       </div>
 
-      <div className="border-b border-gray-300 opacity-50 mx-3" />
+      {/* Divider */}
+      <div className="border-b border-gray-300 opacity-50 mx-3 flex-shrink-0" />
 
-      <div className="flex flex-col gap-2 mt-4 w-full px-2">
-        {menuItems.map(({ icon, path, label }) => {
-          const active = pathname === path || pathname.startsWith(path + '/');
-          return (
-            <SidebarIcon
-              key={path}
-              icon={icon}
-              label={label}
-              active={active}
-              onClick={() => router.push(path)}
-            />
-          );
-        })}
-        {/* Tombol Logout */}
-        <SidebarIcon
-          icon={<MdLogout />}
-          label="Logout"
-          onClick={handleLogout}
-        />
+      {/* Menu Items - Takes up remaining space */}
+      <div className="flex flex-col flex-1">
+        {/* Main Menu Items */}
+        <div className="flex flex-col gap-2 mt-4 w-full px-2">
+          {menuItems.map(({ icon, path, label }) => {
+            const active = path !== 'logout' && (pathname === path || pathname.startsWith(path + '/'));
+            return (
+              <SidebarIcon
+                key={path}
+                icon={icon}
+                label={label}
+                active={active}
+                onClick={() => handleMenuClick(path)}
+              />
+            );
+          })}
+        </div>
       </div>
     </aside>
   );

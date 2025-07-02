@@ -9,6 +9,9 @@ export function middleware(request: NextRequest) {
     "/",
     "/signin",
     "/signup", 
+    "/admin/checkclock",
+    "/admin/checkclock/add-checkclock",
+    "/admin/checkclock/setting-checkclock",
     "/user/checkclock",
     "/user/checkclock/add-checkclock",
     // Tambahkan path lain yang ingin diakses tanpa login

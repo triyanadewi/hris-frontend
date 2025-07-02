@@ -10,9 +10,14 @@ const api = axios.create({
   withCredentials: true, // Enable credentials for stateful auth
 });
 
+console.log("API baseURL:", process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api");
+
 api.interceptors.request.use(
   (config) => {
     const token = Cookies.get("token");
+    
+    console.log("Making request to:", (config.baseURL || "") + (config.url || ""));
+    console.log("With token:", token ? "Present" : "Not present");
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

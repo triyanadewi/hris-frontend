@@ -17,7 +17,7 @@ export default function EditProfile() {
   const router = useRouter();
 
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/profile`, {
       withCredentials: true,
     })
       .then((response) => {
@@ -57,7 +57,7 @@ export default function EditProfile() {
     }
 
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/profile/update`, formData, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/admin/profile/update`, formData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data',

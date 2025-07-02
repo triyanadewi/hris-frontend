@@ -74,16 +74,6 @@ export default function Topbar({ title }: { title: string }) {
       {/* Title */}
       <h1 className="text-lg font-bold">{title}</h1>
 
-      {/* Search Bar */}
-      <div className="flex items-center bg-white rounded-md px-2 py-1 w-1/3 text-black">
-        <FiSearch className="text-gray-500 mr-2" />
-        <input
-          type="text"
-          placeholder="Search"
-          className="bg-transparent outline-none w-full"
-        />
-      </div>
-
       {/* Icons & User Menu */}
       <div className="flex items-center gap-4 relative">
         <div className="p-2 rounded-full hover:bg-white hover:text-[#1C3D5A] transition">

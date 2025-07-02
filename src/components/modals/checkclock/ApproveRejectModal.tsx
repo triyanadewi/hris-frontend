@@ -1,29 +1,11 @@
 import React from 'react';
 import { useSweetAlert } from '@/hooks/useSweetAlert';
-
-interface CheckclockRecord {
-  id: number;
-  FirstName: string;
-  LastName: string;
-  employee_name: string;
-  position: string;
-  date: string;
-  clock_in: string | null;
-  clock_out: string | null;
-  work_hours: string | null;
-  approved: boolean | null;
-  status: string;
-  location: string | null;
-  detail_address: string | null;
-  latitude: string | null;
-  longitude: string | null;
-  proof_of_attendance: string | null;
-}
+import { CheckClockRecord } from '@/lib/services/check-clocks';
 
 interface ApproveRejectModalProps {
   showModal: boolean;
   setShowModal: (value: boolean) => void;
-  selectedRecord: CheckclockRecord | null;
+  selectedRecord: CheckClockRecord | null;
   handleConfirmApprove: () => void;
   handleConfirmReject: () => void;
   mode: 'approve' | 'reject';

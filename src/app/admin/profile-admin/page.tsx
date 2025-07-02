@@ -45,7 +45,7 @@ export default function AdminProfile() {
   ];
 
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/companies/1`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/companies/1`)
       .then(response => {
         setCompany(response.data)
       })

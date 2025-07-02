@@ -6,7 +6,7 @@ import { FiCalendar } from "react-icons/fi";
 import { FiClock } from "react-icons/fi";
 import dynamic from "next/dynamic";
 import axios from "axios";
-import { getEmployees } from "@/lib/services/employee";
+import { getEmployeesForCheckClock, Employee as EmployeeType } from "@/lib/services/check-clocks";
 
 interface Employee {
   id: number;
@@ -52,7 +52,7 @@ export default function CheckclockFormAdmin({
 
   const [error, setError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employees, setEmployees] = useState<EmployeeType[]>([]);
   const [formData, setFormData] = useState<FormInitialData>({
     employee: initialData?.employee || "",
     type: initialData?.type || "",
@@ -223,13 +223,14 @@ export default function CheckclockFormAdmin({
   };
 
   const fetchEmployees = async () => {
-    // console.log("fetchEmployees dipanggil!");
+    console.log("fetchEmployees dipanggil!");
 
     try {
-      const employees = await getEmployees(1);
+      const employees = await getEmployeesForCheckClock();
+      console.log("Employees fetched:", employees);
       setEmployees(employees);
     } catch (error) {
-      console.error("Gagal fetch:", error);
+      console.error("Gagal fetch employees:", error);
     }
   };
 
@@ -262,7 +263,7 @@ export default function CheckclockFormAdmin({
             </option>
             {employees?.map((employee) => (
               <option key={employee.id} value={employee.id}>
-                {`${employee.FirstName} ${employee.LastName} - ${employee.Position}`}
+                {`${employee.FirstName} ${employee.LastName} - ${employee.position_name}`}
               </option>
             ))}
           </select>

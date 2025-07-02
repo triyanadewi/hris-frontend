@@ -54,7 +54,7 @@ function CheckoutContent() {
     setAddonEmployees(parseInt(searchParams.get("addonEmployees") ?? "0"));
 
     // Fetch company from API
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/companies`)
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/companies`)
       .then((response) => {
         const data = response.data;
         if (Array.isArray(data) && data.length > 0) {

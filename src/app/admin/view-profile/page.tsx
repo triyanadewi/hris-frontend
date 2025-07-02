@@ -7,7 +7,7 @@ export default function ViewProfile() {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/profile`, {
       withCredentials: true,
     })
       .then((response) => {

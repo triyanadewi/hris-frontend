@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
   MdSearch,
   MdFilterList,
@@ -16,7 +15,8 @@ import { useRouter } from "next/navigation";
 import Pagination from "@/components/Pagination";
 import ApproveRejectModal from "@/components/modals/checkclock/ApproveRejectModal";
 import AttendanceDetailModal from "@/components/modals/checkclock/AttendanceDetailModal";
-import { getAllCheckClocks } from "@/lib/services/check-clocks";
+import FilterUserModal, { FilterData } from "@/components/modals/checkclock/FilterModalProps";
+import { getAllCheckClocks, getCheckClocksWithFilters, approveCheckClock, rejectCheckClock, exportCheckClocks, CheckClockRecord } from "@/lib/services/check-clocks";
 
 interface ErrorType {
   response?: {
@@ -26,47 +26,30 @@ interface ErrorType {
   };
 }
 
-interface CheckclockRecord {
-  id: number;
-  FirstName: string;
-  LastName: string;
-  employee_name: string;
-  position: string;
-  date: string;
-  clock_in: string | null;
-  clock_out: string | null;
-  work_hours: string | null;
-  approved: boolean | null;
-  status: string;
-  location: string | null;
-  detail_address: string | null;
-  latitude: string | null;
-  longitude: string | null;
-  proof_of_attendance: string | null;
-}
-
 interface ApiResponse {
-  data: CheckclockRecord[];
+  data: CheckClockRecord[];
   message: string;
   status: number;
 }
 
 export default function CheckclockPage() {
   const router = useRouter();
-  const [records, setRecords] = useState<CheckclockRecord[]>([]);
+  const [records, setRecords] = useState<CheckClockRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [selectedRecord, setSelectedRecord] = useState<CheckclockRecord | null>(
+  const [selectedRecord, setSelectedRecord] = useState<CheckClockRecord | null>(
     null
   );
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedDetail, setSelectedDetail] = useState<CheckclockRecord | null>(
+  const [selectedDetail, setSelectedDetail] = useState<CheckClockRecord | null>(
     null
   );
-  const [isClient, setIsClient] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [modalMode, setModalMode] = useState<"approve" | "reject">("approve");
+  const [isClient, setIsClient] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<FilterData | null>(null);
 
   // MISSING: useEffect untuk set isClient dan fetch data
   useEffect(() => {
@@ -80,13 +63,25 @@ export default function CheckclockPage() {
     }
   }, [isClient]);
 
-  const openApproveModal = (record: CheckclockRecord) => {
+  const handleApplyFilter = (filters: FilterData) => {
+    setActiveFilters(filters);
+    setCurrentPage(1); // Reset to first page when filtering
+  };
+
+  // Re-fetch data when filters change
+  useEffect(() => {
+    if (isClient) {
+      fetchRecords();
+    }
+  }, [activeFilters, isClient]);
+
+  const openApproveModal = (record: CheckClockRecord) => {
     setSelectedRecord(record);
     setModalMode("approve");
     setShowModal(true);
   };
 
-  const openRejectModal = (record: CheckclockRecord) => {
+  const openRejectModal = (record: CheckClockRecord) => {
     setSelectedRecord(record);
     setModalMode("reject");
     setShowModal(true);
@@ -94,12 +89,38 @@ export default function CheckclockPage() {
 
   const fetchRecords = async () => {
     setLoading(true);
+    setError(""); // Clear previous errors
     try {
-      const checkclocks = await getAllCheckClocks();
+      let checkclocks;
+      if (activeFilters) {
+        // Use filtered endpoint with specific filters
+        if (activeFilters.startDate && activeFilters.endDate) {
+          // Date range filter
+          checkclocks = await getCheckClocksWithFilters({
+            startDate: activeFilters.startDate,
+            endDate: activeFilters.endDate,
+            positions: activeFilters.positions,
+            statuses: activeFilters.statuses
+          });
+        } else {
+          // Month/year filter
+          checkclocks = await getCheckClocksWithFilters({
+            month: activeFilters.month,
+            year: activeFilters.year,
+            positions: activeFilters.positions,
+            statuses: activeFilters.statuses
+          });
+        }
+      } else {
+        // Default: show today's data
+        checkclocks = await getAllCheckClocks();
+      }
       setRecords(checkclocks);
     } catch (err: unknown) {
       const error = err as ErrorType;
-      setError(error.response?.data?.message || "Failed to fetch records");
+      const errorMessage = error.response?.data?.message || "Failed to fetch records. Please check your connection and try again.";
+      setError(errorMessage);
+      console.error("Fetch error:", err);
     } finally {
       setLoading(false);
     }
@@ -110,6 +131,8 @@ export default function CheckclockPage() {
     const employeeName = record.employee_name?.toLowerCase() || "";
     const position =
       typeof record.position === "string" ? record.position.toLowerCase() : "";
+    
+    // Only apply search filter since date/position/status filtering is done on backend
     return employeeName.includes(searchLower) || position.includes(searchLower);
   });
 
@@ -126,65 +149,98 @@ export default function CheckclockPage() {
   const handleConfirmApprove = async () => {
     if (!selectedRecord) return;
     try {
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/checkclocks/${selectedRecord.id}`,
-        {
-          approved: true,
-        }
-      );
-      // console.log("Record approved:", selectedRecord.id);
+      await approveCheckClock(selectedRecord.id);
       await fetchRecords();
       setShowModal(false);
     } catch (err) {
-      setError("Failed to approve record");
+      const error = err as ErrorType;
+      setError(error.response?.data?.message || "Failed to approve record");
     }
   };
 
   const handleConfirmReject = async () => {
     if (!selectedRecord) return;
     try {
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/checkclocks/${selectedRecord.id}`,
-        {
-          approved: false,
-        }
-      );
+      await rejectCheckClock(selectedRecord.id);
       await fetchRecords();
       setShowModal(false);
     } catch (err) {
-      setError("Failed to reject record");
+      const error = err as ErrorType;
+      setError(error.response?.data?.message || "Failed to reject record");
     }
   };
 
-  const handleApprove = (record: CheckclockRecord) => {
+  const handleApprove = (record: CheckClockRecord) => {
     setSelectedRecord(record);
+    setModalMode("approve");
     setShowModal(true);
   };
 
-  const handleReject = (record: CheckclockRecord) => {
+  const handleReject = (record: CheckClockRecord) => {
     setSelectedRecord(record);
+    setModalMode("reject");
     setShowModal(true);
   };
 
   const handleExport = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/checkclocks/export`,
-        {
-          responseType: "blob", // Penting agar file terunduh dengan benar
+      let filters;
+      if (activeFilters) {
+        if (activeFilters.startDate && activeFilters.endDate) {
+          // Date range filter
+          filters = {
+            startDate: activeFilters.startDate,
+            endDate: activeFilters.endDate,
+            positions: activeFilters.positions,
+            statuses: activeFilters.statuses
+          };
+        } else {
+          // Month/year filter
+          filters = {
+            month: activeFilters.month,
+            year: activeFilters.year,
+            positions: activeFilters.positions,
+            statuses: activeFilters.statuses
+          };
         }
-      );
-
-      // Buat link download manual
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      } else {
+        // Default: use today's data for export
+        const currentDate = new Date();
+        filters = {
+          month: currentDate.getMonth() + 1,
+          year: currentDate.getFullYear(),
+          positions: [],
+          statuses: []
+        };
+      }
+      
+      const blob = await exportCheckClocks(filters);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "check_clocks.xlsx"); // Nama file
+      
+      // Generate filename based on filters
+      let filename = "check_clocks";
+      if (filters.startDate && filters.endDate) {
+        filename += `_${filters.startDate}_to_${filters.endDate}`;
+      } else if (filters.month && filters.year) {
+        filename += `_${filters.year}-${filters.month.toString().padStart(2, '0')}`;
+      }
+      if (filters.positions && filters.positions.length > 0) {
+        filename += `_${filters.positions.join('-').replace(/\s+/g, '_')}`;
+      }
+      filename += ".xlsx";
+      
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Export failed:", error);
+      setError("Failed to export data");
     }
   };
 
@@ -208,9 +264,46 @@ export default function CheckclockPage() {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <MdClose className="h-5 w-5 text-red-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm">{error}</p>
+            </div>
+            <div className="ml-auto pl-3">
+              <button
+                onClick={() => setError("")}
+                className="text-red-400 hover:text-red-600"
+              >
+                <MdClose className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-semibold">Checkclock Overview</h2>
+          {!activeFilters && (
+            <span className="text-sm text-gray-600 bg-blue-50 px-2 py-1 rounded">
+              Today's Data
+            </span>
+          )}
+          {activeFilters && (
+            <span className="text-sm text-gray-600 bg-green-50 px-2 py-1 rounded">
+              {activeFilters.startDate && activeFilters.endDate 
+                ? activeFilters.startDate === activeFilters.endDate
+                  ? `Date: ${new Date(activeFilters.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
+                  : `${new Date(activeFilters.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(activeFilters.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                : `${new Date(activeFilters.year, activeFilters.month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+              }
+            </span>
+          )}
           <button
             onClick={() => router.push("/admin/checkclock/setting-checkclock")}
             className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors border border-gray-300"
@@ -231,9 +324,31 @@ export default function CheckclockPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <button className="flex items-center gap-1 px-3 py-1 border rounded-md hover:bg-[#D9D9D9] text-sm">
+          {/* Action Buttons */}
+          <button 
+            className={`flex items-center gap-1 px-3 py-1 border rounded-md hover:bg-[#D9D9D9] text-sm ${
+              activeFilters ? 'bg-[#1E3A5F] text-white border-[#1E3A5F]' : ''
+            }`}
+            onClick={() => setShowFilterModal(true)}
+          >
             <FiFilter /> Filter
+            {activeFilters && (
+              <span className="ml-1 bg-white text-[#1E3A5F] rounded-full px-1 text-xs">
+                {(activeFilters.positions.length + activeFilters.statuses.length) || 'ON'}
+              </span>
+            )}
           </button>
+          {activeFilters && (
+            <button
+              onClick={() => {
+                setActiveFilters(null);
+                setCurrentPage(1);
+              }}
+              className="flex items-center gap-1 px-3 py-1 border rounded-md hover:bg-red-50 text-sm text-red-600 border-red-300"
+            >
+              <MdClose /> Clear Filter
+            </button>
+          )}
           <button
             onClick={handleExport}
             className="flex items-center gap-1 px-3 py-1 border rounded-md hover:bg-[#D9D9D9] text-sm"
@@ -261,6 +376,9 @@ export default function CheckclockPage() {
                 Position
               </th>
               <th className="px-4 py-2 text-center text-sm font-semibold text-white">
+                Date
+              </th>
+              <th className="px-4 py-2 text-center text-sm font-semibold text-white">
                 Clock In
               </th>
               <th className="px-4 py-2 text-center text-sm font-semibold text-white">
@@ -281,10 +399,17 @@ export default function CheckclockPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {currentData.map((record) => (
-              <tr key={record.id}>
+            {currentData.map((record, index) => (
+              <tr key={record.id || `record-${index}`}>
                 <td className="px-4 py-2">{record.employee_name}</td>
                 <td className="px-4 py-2 text-center">{record.position}</td>
+                <td className="px-4 py-2 text-center">
+                  {record.date ? new Date(record.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  }) : "-"}
+                </td>
                 <td className="px-4 py-2 text-center">
                   {record.clock_in || "-"}
                 </td>
@@ -377,6 +502,13 @@ export default function CheckclockPage() {
         setShowDetailModal={setShowDetailModal}
         selectedDetail={selectedDetail}
         // getCurrentLocation={getCurrentLocation}
+      />
+
+      {/* Modal Filter */}
+      <FilterUserModal
+        show={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        onApplyFilter={handleApplyFilter}
       />
 
       <Pagination

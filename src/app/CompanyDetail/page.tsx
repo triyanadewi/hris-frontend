@@ -391,7 +391,7 @@ const handleSubmit = async () => {
           )}
         </div>
         {/* Subscription Info */}
-        {subscriptionInfo && (
+        {/*{subscriptionInfo && (
           <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-full text-emerald-700 text-sm font-medium shadow-sm">
             <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center mr-2">
               <svg
@@ -411,7 +411,7 @@ const handleSubmit = async () => {
             </span>
             <span className="ml-1 opacity-80">branches available</span>
           </div>
-        )}
+        )}*/}
       </div>
 
       {/* Branches Section */}

@@ -5,6 +5,7 @@ import { FaUserCircle, FaEye } from "react-icons/fa";
 import { FiDownload } from "react-icons/fi";
 import dynamic from "next/dynamic";
 import { useSweetAlert } from "@/hooks/useSweetAlert";
+import { CheckClockRecord } from "@/lib/services/check-clocks";
 
 // Import Leaflet CSS
 import "leaflet/dist/leaflet.css";
@@ -38,28 +39,8 @@ const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
 type AttendanceDetailModalProps = {
   showDetailModal: boolean;
   setShowDetailModal: (value: boolean) => void;
-  selectedDetail: CheckclockRecord | null;
+  selectedDetail: CheckClockRecord | null;
   // getCurrentLocation: () => void;
-};
-
-// Definisikan tipe data detail
-type CheckclockRecord = {
-  id: number;
-  FirstName: string;
-  LastName: string;
-  employee_name: string;
-  position: string;
-  date: string;
-  clock_in: string | null;
-  clock_out: string | null;
-  work_hours: string | null;
-  approved: boolean | null;
-  status: string;
-  location: string | null;
-  detail_address: string | null;
-  latitude: string | null;
-  longitude: string | null;
-  proof_of_attendance: string | null;
 };
 
 const AttendanceDetailModal: React.FC<AttendanceDetailModalProps> = ({
